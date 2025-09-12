@@ -93,24 +93,25 @@ export function useTextHandler() {
           // 左右拖拽 → 改变宽度，文本换行
           // 上下拖拽 → 改变高度，文字显示区域变化
           const newWidth = (textbox.width || 100) * scaleX
+          const newHeight = (textbox.height || 50) * scaleY
 
           textbox.set({
             width: newWidth,
+            height: newHeight,
             scaleX: 1,
             scaleY: 1,
           })
         } else {
           // ---- 整体缩放：文字和框一起等比例缩放 ----
           // 四角锚点 → 字体大小等比例缩放
-          const currentFontSize = textbox.fontSize || 16
-          const newFontSize = currentFontSize * scaleX
           const newWidth = (textbox.width || 100) * scaleX
           const newHeight = (textbox.height || 50) * scaleY
-
+          const newFontSize = (textbox.fontSize || 16) * scaleX
+          textbox.fontSize = newFontSize
           textbox.set({
-            fontSize: newFontSize,
             width: newWidth,
             height: newHeight,
+            fontSize: newFontSize,
             scaleX: 1,
             scaleY: 1,
           })
