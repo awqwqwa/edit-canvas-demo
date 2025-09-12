@@ -53,14 +53,14 @@ export function useTextHandler() {
     })
 
     // 设置自定义属性
-    ;(textObject as EditorTextObject).id = options.id || `text_${Date.now()}`
-    ;(textObject as EditorTextObject).elementType = 'text'
-    ;(textObject as EditorTextObject).isEditable = true
+    ;(textObject as unknown as EditorTextObject).id = options.id || `text_${Date.now()}`
+    ;(textObject as unknown as EditorTextObject).elementType = 'text'
+    ;(textObject as unknown as EditorTextObject).isEditable = true
 
     // 设置文本编辑事件
-    setupTextEvents(textObject as EditorTextObject)
+    setupTextEvents(textObject as unknown as EditorTextObject)
 
-    return textObject as EditorTextObject
+    return textObject as unknown as EditorTextObject
   }
 
   // 设置文本事件处理
@@ -71,8 +71,10 @@ export function useTextHandler() {
     })
 
     // 缩放只改变盒子大小，不改变字体大小
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     textObject.on('scaling', (e: any) => {
-      const obj = e.target
+      const obj = e.transform.target
+      console.log(obj.type)
       if (obj && obj.type === 'textbox') {
         const textbox = obj as Textbox
         const { scaleX = 1, scaleY = 1 } = textbox
@@ -91,11 +93,9 @@ export function useTextHandler() {
           // 左右拖拽 → 改变宽度，文本换行
           // 上下拖拽 → 改变高度，文字显示区域变化
           const newWidth = (textbox.width || 100) * scaleX
-          const newHeight = (textbox.height || 50) * scaleY
 
           textbox.set({
             width: newWidth,
-            height: newHeight,
             scaleX: 1,
             scaleY: 1,
           })
