@@ -1,5 +1,13 @@
 import { ref, reactive, computed } from 'vue'
-import type { EditorObject, EditorTextObject, EditorImageObject, StyleConfig } from '@/type/element'
+import type { EditorObject, EditorTextObject, StyleConfig } from '@/type/element'
+
+// 扩展 Canvas 类型以包含层级操作方法
+interface FabricCanvasWithLayering {
+  bringObjectToFront(object: unknown): void
+  sendObjectToBack(object: unknown): void
+  bringObjectForward(object: unknown): void
+  sendObjectBackwards(object: unknown): void
+}
 
 export function useStyleManager() {
   const activeObject = ref<EditorObject | null>(null)
@@ -266,29 +274,33 @@ export function useStyleManager() {
   // 对象层级操作
   const bringToFront = () => {
     if (!activeObject.value || !activeObject.value.canvas) return
-
-    activeObject.value.bringToFront()
+    ;(activeObject.value.canvas as unknown as FabricCanvasWithLayering).bringObjectToFront(
+      activeObject.value,
+    )
     activeObject.value.canvas.renderAll()
   }
 
   const sendToBack = () => {
     if (!activeObject.value || !activeObject.value.canvas) return
-
-    activeObject.value.sendToBack()
+    ;(activeObject.value.canvas as unknown as FabricCanvasWithLayering).sendObjectToBack(
+      activeObject.value,
+    )
     activeObject.value.canvas.renderAll()
   }
 
   const bringForward = () => {
     if (!activeObject.value || !activeObject.value.canvas) return
-
-    activeObject.value.bringForward()
+    ;(activeObject.value.canvas as unknown as FabricCanvasWithLayering).bringObjectForward(
+      activeObject.value,
+    )
     activeObject.value.canvas.renderAll()
   }
 
   const sendBackward = () => {
     if (!activeObject.value || !activeObject.value.canvas) return
-
-    activeObject.value.sendBackward()
+    ;(activeObject.value.canvas as unknown as FabricCanvasWithLayering).sendObjectBackwards(
+      activeObject.value,
+    )
     activeObject.value.canvas.renderAll()
   }
 

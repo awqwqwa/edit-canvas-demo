@@ -341,7 +341,6 @@ styleManager.setActiveObject(props.activeObject)
 watch(
   () => props.activeObject,
   (newActiveObject) => {
-    console.log('newActiveObject', styleManager.currentStyle)
     if (newActiveObject) {
       styleManager.setActiveObject(newActiveObject)
     }
