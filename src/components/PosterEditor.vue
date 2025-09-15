@@ -131,7 +131,7 @@ import { useTextHandler } from '@/composables/useTextHandler'
 import { useImageHandler } from '@/composables/useImageHandler'
 import { useStyleManager } from '@/composables/useStyleManager'
 import PropertyPanel from './PropertyPanel.vue'
-import type { TextElement, ImageElement, EditorObject } from '@/type/element'
+import type { TextElement, EditorObject } from '@/type/element'
 
 const canvasRef = ref<HTMLCanvasElement>()
 
@@ -157,17 +157,15 @@ const {
 
 const {
   createTextObject,
-  createTextFromElement,
   convertToElement: convertTextToElement,
 } = useTextHandler()
 
 const {
   createImageObject,
-  createImageFromElement,
   convertToElement: convertImageToElement,
 } = useImageHandler()
 
-const { setActiveObject, currentStyle } = useStyleManager(saveState)
+const { setActiveObject } = useStyleManager(saveState)
 
 // 计算属性
 const canvasWrapperStyle = computed(() => ({
@@ -305,11 +303,6 @@ const handleZoom = (event: Event) => {
   zoomCanvas(parseFloat(target.value))
 }
 
-// 处理样式变化
-const handleStyleChange = (changes: any) => {
-  // 样式变化会通过PropertyPanel组件传递过来
-  saveState()
-}
 
 // 导出图片
 const exportImage = () => {

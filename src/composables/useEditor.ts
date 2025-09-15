@@ -43,6 +43,23 @@ export function useEditor() {
     // 使用markRaw避免Vue响应式代理，保护Fabric.js原生交互能力
     canvas.value = markRaw(fabricCanvas)
 
+    // 设置画布默认对象样式
+    Canvas.prototype.getActiveObject = function() {
+      const activeObject = this._activeObject;
+      if (activeObject) {
+        activeObject.set({
+          transparentCorners: false, // 边框方点: false 实心  true 空心
+          borderColor: 'red', // 边框颜色
+          cornerStrokeColor: 'red',
+          cornerColor: 'red', // 边框方点的颜色
+          cornerSize: 8, // 边框方点的大小
+          padding: 10,
+          cornerDashArray: [2, 2],
+          borderScaleFactor: 2,
+        });
+      }
+      return activeObject;
+    };
     // 设置画布事件监听
     setupCanvasEvents(fabricCanvas)
 
