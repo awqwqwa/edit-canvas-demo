@@ -43,6 +43,25 @@ export function useEditor() {
     // 使用markRaw避免Vue响应式代理，保护Fabric.js原生交互能力
     canvas.value = markRaw(fabricCanvas)
 
+    // 设置画布全局样式
+    fabricCanvas.set({
+      // 设置选择区域样式
+      selectionColor: 'rgba(100, 100, 255, 0.1)',
+      selectionBorderColor: 'red',
+      selectionLineWidth: 2,
+    })
+
+    // 设置全局默认值 - 隐藏连接线
+    try {
+      const fabricWindow = window as unknown as { fabric?: { Object?: { prototype?: { withConnection?: boolean } } } };
+      if (fabricWindow.fabric?.Object?.prototype) {
+        fabricWindow.fabric.Object.prototype.withConnection = false;
+        console.log('🔗 全局设置：隐藏所有对象的连接线');
+      }
+    } catch (error) {
+      console.warn('⚠️ 无法设置全局连接线隐藏:', error);
+    }
+
     // 设置画布默认对象样式
     Canvas.prototype.getActiveObject = function() {
       const activeObject = this._activeObject;
@@ -56,6 +75,8 @@ export function useEditor() {
           cornerSize: 4, // 边框方点的大小
           padding: 0,
           borderScaleFactor: 2,
+          // 隐藏旋转控制器和边框之间的连接线
+          withConnection: false,
         });
       }
       return activeObject;
@@ -172,9 +193,11 @@ export function useEditor() {
     fabricCanvas.on('object:added', (e) => {
       if (e.target) {
         e.target.set({
+          hasRotatingPoint: true, // 显示旋转控制器
+          withConnection: false, // 隐藏连接线
           rotatingPointOffset: 35, // 旋转控制器距离对象的距离
         });
-        console.log('📦 对象已添加，设置旋转控制器偏移:', e.target.type);
+        console.log('📦 对象已添加，隐藏连接线并设置旋转控制器偏移:', e.target.type);
       }
     });
 
@@ -318,6 +341,20 @@ export function useEditor() {
   // 添加元素到画布
   const addElementToCanvas = (fabricObject: EditorObject) => {
     if (!canvas.value) return
+
+    // 为新对象设置样式，隐藏连接线
+    fabricObject.set({
+      // 保留旋转控制器但隐藏连接线
+      hasRotatingPoint: true,
+      rotatingPointOffset: 35, // 设置旋转控制器距离
+      borderColor: 'red',
+      cornerColor: 'red',
+      cornerStrokeColor: 'red',
+      borderScaleFactor: 2,
+      cornerSize: 4,
+      transparentCorners: false,
+      padding: 0,
+    })
 
     canvas.value.add(fabricObject as EditorObject)
     canvas.value.setActiveObject(fabricObject as EditorObject)
