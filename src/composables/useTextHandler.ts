@@ -62,64 +62,60 @@ export function useTextHandler() {
 
     return textObject as unknown as EditorTextObject
   }
-
   // 设置文本事件处理
   const setupTextEvents = (textObject: EditorTextObject) => {
     // 双击进入编辑模式
+
     textObject.on('mousedblclick', () => {
       enterEditMode(textObject)
     })
 
-    // 缩放只改变盒子大小，不改变字体大小
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    textObject.on('scaling', (e: any) => {
-      const obj = e.transform.target
-      console.log(obj.type)
-      if (obj && obj.type === 'textbox') {
-        const textbox = obj as Textbox
-        const { scaleX = 1, scaleY = 1 } = textbox
+    // 缩放结束后处理尺寸变化，保持锚点固定
+    textObject.on('modified', () => {
+      if (textObject.type === 'textbox') {
+        const { scaleX = 1, scaleY = 1 } = textObject
 
-        // 判断是否为整体缩放（四角锚点同时缩放）
-        // 当X和Y方向都有明显缩放时，认为是整体缩放
-        const isUniformScaling = Math.abs(scaleX - 1) > 0.01 && Math.abs(scaleY - 1) > 0.01
+        // 只有当缩放因子不为1时才处理
+        if (Math.abs(scaleX - 1) > 0.01 || Math.abs(scaleY - 1) > 0.01) {
+          // 获取当前的尺寸信息
+          const originalWidth = textObject.width || 100
+          const originalHeight = textObject.height || 50
+          const originalFontSize = textObject.fontSize || 16
 
-        // 调试信息
-        console.log(
-          `缩放模式: ${isUniformScaling ? '整体缩放' : '单方向缩放'}, scaleX: ${scaleX.toFixed(3)}, scaleY: ${scaleY.toFixed(3)}`,
-        )
+          // 判断是否为整体缩放（四角锚点同时缩放）
+          const isUniformScaling = Math.abs(scaleX - 1) > 0.01 && Math.abs(scaleY - 1) > 0.01
 
-        if (!isUniformScaling) {
-          // ---- 单方向缩放：只改宽/高，不缩放文字 ----
-          // 左右拖拽 → 改变宽度，文本换行
-          // 上下拖拽 → 改变高度，文字显示区域变化
-          const newWidth = (textbox.width || 100) * scaleX
-          const newHeight = (textbox.height || 50) * scaleY
+          if (!isUniformScaling) {
+            // ---- 单方向缩放：只改宽/高，不缩放文字 ----
+            const newWidth = originalWidth * scaleX
+            const newHeight = originalHeight * scaleY
 
-          textbox.set({
-            width: newWidth,
-            height: newHeight,
-            scaleX: 1,
-            scaleY: 1,
-          })
-        } else {
-          // ---- 整体缩放：文字和框一起等比例缩放 ----
-          // 四角锚点 → 字体大小等比例缩放
-          const newWidth = (textbox.width || 100) * scaleX
-          const newHeight = (textbox.height || 50) * scaleY
-          const newFontSize = Math.round((textbox.fontSize || 16) * scaleX)
-          textbox.fontSize = newFontSize
-          textbox.set({
-            width: newWidth,
-            height: newHeight,
-            fontSize: newFontSize,
-            scaleX: 1,
-            scaleY: 1,
-          })
-        }
+            textObject.set({
+              width: newWidth,
+              height: newHeight,
+              scaleX: 1,
+              scaleY: 1,
+            })
+          } else {
+            // ---- 整体缩放：文字和框一起等比例缩放 ----
+            const scaleFactor = Math.min(scaleX, scaleY) // 使用较小的缩放因子保持比例
+            const newWidth = originalWidth * scaleFactor
+            const newHeight = originalHeight * scaleFactor
+            const newFontSize = Math.max(8, Math.round(originalFontSize * scaleFactor)) // 最小字体8px
 
-        textbox.setCoords()
-        if (textObject.canvas) {
-          textObject.canvas.renderAll()
+            textObject.set({
+              width: newWidth,
+              height: newHeight,
+              fontSize: newFontSize,
+              scaleX: 1,
+              scaleY: 1,
+            })
+          }
+
+          textObject.setCoords()
+          if (textObject.canvas) {
+            textObject.canvas.renderAll()
+          }
         }
       }
     })
