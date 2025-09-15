@@ -4,6 +4,7 @@ import type {
   EditorCanvas,
   EditorConfig,
   EditorObject,
+  EditorTextObject,
   TextElement,
   ImageElement,
 } from '@/type/element'
@@ -185,18 +186,77 @@ export function useEditor() {
   // 导出画布为JSON
   const exportCanvasToJSON = () => {
     if (!canvas.value) return null
-    return canvas.value.toJSON()
+    // 包含自定义属性
+    return JSON.stringify(canvas.value.toObject(['id', 'elementType', 'isEditable']))
+  }
+
+  // 重新设置文本对象的事件处理器
+  const setupTextObjectEvents = (textObject: EditorTextObject) => {
+    // 双击进入编辑模式
+    textObject.on('mousedblclick', () => {
+      // 这里可以触发进入编辑模式的逻辑
+      state.isTextEditing = true
+    })
+
+    // 选择时触发事件
+    textObject.on('selected', () => {
+      state.activeObject = textObject
+      state.selectedElementId = textObject.id
+    })
   }
 
   // 从JSON加载画布
   const loadCanvasFromJSON = (jsonData: string) => {
     if (!canvas.value) return
 
-    canvas.value.loadFromJSON(jsonData).then(() => {
-      canvas.value!.renderAll()
-      // 重新绑定事件
-      setupCanvasEvents(canvas.value! as EditorCanvas)
-    })
+    // 保存当前的活动对象ID（如果有）
+    const previousActiveObjectId = state.activeObject?.id
+
+    canvas.value
+      .loadFromJSON(jsonData)
+      .then(() => {
+        canvas.value!.renderAll()
+
+        // 重新绑定事件
+        setupCanvasEvents(canvas.value! as EditorCanvas)
+
+        // 重新设置所有对象的事件处理器
+        const objects = canvas.value!.getObjects() as EditorObject[]
+        objects.forEach((obj) => {
+          const editorObj = obj as EditorObject
+          if (editorObj.elementType === 'text') {
+            // 重新设置文本对象的事件处理器
+            setupTextObjectEvents(editorObj as EditorTextObject)
+          }
+          // 可以在这里添加其他类型对象的事件设置
+        })
+
+        // 恢复活动对象（如果之前有的话）
+        if (previousActiveObjectId) {
+          const targetObject = objects.find(
+            (obj) => (obj as EditorObject).id === previousActiveObjectId,
+          )
+          if (targetObject) {
+            canvas.value!.setActiveObject(targetObject)
+            state.activeObject = targetObject as EditorObject
+            state.selectedElementId = (targetObject as EditorObject).id
+          } else {
+            // 如果找不到之前的活动对象，清空状态
+            state.activeObject = null
+            state.selectedElementId = null
+          }
+        } else {
+          // 清空活动对象状态
+          state.activeObject = null
+          state.selectedElementId = null
+        }
+
+        // 确保画布重新渲染
+        canvas.value!.renderAll()
+      })
+      .catch((error) => {
+        console.error('加载画布状态失败:', error)
+      })
   }
 
   // 导出为图片

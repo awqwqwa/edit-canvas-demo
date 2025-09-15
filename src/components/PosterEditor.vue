@@ -72,7 +72,10 @@
       <!-- 左侧属性面板 -->
       <div class="sidebar left-sidebar" v-if="state.activeObject">
         <h3>属性面板</h3>
-        <PropertyPanel :active-object="state.activeObject" @style-change="handleStyleChange" />
+        <PropertyPanel
+          :active-object="state.activeObject as EditorObject"
+          :on-style-change="saveState"
+        />
       </div>
 
       <!-- 中央画布区域 -->
@@ -164,7 +167,7 @@ const {
   convertToElement: convertImageToElement,
 } = useImageHandler()
 
-const { setActiveObject, currentStyle } = useStyleManager()
+const { setActiveObject, currentStyle } = useStyleManager(saveState)
 
 // 计算属性
 const canvasWrapperStyle = computed(() => ({

@@ -320,6 +320,7 @@ import type { EditorObject, EditorTextObject } from '@/type/element'
 
 interface Props {
   activeObject: EditorObject
+  onStyleChange?: () => void
 }
 
 const props = defineProps<Props>()
@@ -332,7 +333,7 @@ const emit = defineEmits<{
   styleChange: [changes: StyleChangeEvent]
 }>()
 
-const styleManager = useStyleManager()
+const styleManager = useStyleManager(props.onStyleChange)
 
 // 设置活动对象
 styleManager.setActiveObject(props.activeObject)

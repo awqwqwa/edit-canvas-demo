@@ -9,7 +9,7 @@ interface FabricCanvasWithLayering {
   sendObjectBackwards(object: unknown): void
 }
 
-export function useStyleManager() {
+export function useStyleManager(onStyleChange?: () => void) {
   const activeObject = ref<EditorObject | null>(null)
 
   // 当前样式配置
@@ -129,6 +129,8 @@ export function useStyleManager() {
     if (textObj.canvas) {
       textObj.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 应用字体
@@ -142,6 +144,8 @@ export function useStyleManager() {
     if (textObj.canvas) {
       textObj.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 应用字体粗细
@@ -155,6 +159,8 @@ export function useStyleManager() {
     if (textObj.canvas) {
       textObj.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 应用文字颜色
@@ -168,6 +174,8 @@ export function useStyleManager() {
     if (textObj.canvas) {
       textObj.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 应用背景颜色
@@ -184,6 +192,8 @@ export function useStyleManager() {
     if (activeObject.value.canvas) {
       activeObject.value.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 应用透明度
@@ -197,6 +207,8 @@ export function useStyleManager() {
     if (activeObject.value.canvas) {
       activeObject.value.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 应用边框宽度
@@ -209,6 +221,8 @@ export function useStyleManager() {
     if (activeObject.value.canvas) {
       activeObject.value.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 应用边框颜色
@@ -221,6 +235,8 @@ export function useStyleManager() {
     if (activeObject.value.canvas) {
       activeObject.value.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 切换粗体
@@ -245,6 +261,8 @@ export function useStyleManager() {
     if (textObj.canvas) {
       textObj.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 切换下划线
@@ -257,6 +275,8 @@ export function useStyleManager() {
     if (textObj.canvas) {
       textObj.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 设置文本对齐
@@ -269,6 +289,8 @@ export function useStyleManager() {
     if (textObj.canvas) {
       textObj.canvas.renderAll()
     }
+
+    onStyleChange?.()
   }
 
   // 对象层级操作
