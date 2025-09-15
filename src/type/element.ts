@@ -1,9 +1,4 @@
-import type {
-  Object as FabricObject,
-  Canvas,
-  Image as FabricImage,
-  IText as FabricIText,
-} from 'fabric'
+import type { FabricObject, Canvas, FabricImage, IText as FabricIText } from 'fabric'
 
 interface BaseElement {
   id: string

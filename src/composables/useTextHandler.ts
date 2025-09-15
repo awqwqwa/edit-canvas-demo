@@ -106,7 +106,7 @@ export function useTextHandler() {
           // 四角锚点 → 字体大小等比例缩放
           const newWidth = (textbox.width || 100) * scaleX
           const newHeight = (textbox.height || 50) * scaleY
-          const newFontSize = (textbox.fontSize || 16) * scaleX
+          const newFontSize = Math.round((textbox.fontSize || 16) * scaleX)
           textbox.fontSize = newFontSize
           textbox.set({
             width: newWidth,

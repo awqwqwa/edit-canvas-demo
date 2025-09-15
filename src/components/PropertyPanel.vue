@@ -76,9 +76,16 @@
         <label>字体大小:</label>
         <select
           :value="currentStyle.fontSize"
+          onclick="console.log(styleManager.fontSize)"
           @change="styleManager.applyFontSize(parseInt(($event.target as HTMLSelectElement).value))"
           class="select-input"
         >
+          <option
+            v-if="!styleManager.fontSizes.value.includes(currentStyle.fontSize)"
+            :value="currentStyle.fontSize"
+          >
+            {{ currentStyle.fontSize }}px
+          </option>
           <option v-for="size in styleManager.fontSizes.value" :key="size" :value="size">
             {{ size }}px
           </option>
@@ -334,6 +341,7 @@ styleManager.setActiveObject(props.activeObject)
 watch(
   () => props.activeObject,
   (newActiveObject) => {
+    console.log('newActiveObject', styleManager.currentStyle)
     if (newActiveObject) {
       styleManager.setActiveObject(newActiveObject)
     }
