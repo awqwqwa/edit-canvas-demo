@@ -39,225 +39,100 @@ export function useEditor() {
       stopContextMenu: true,
       fireRightClick: true,
     }) as EditorCanvas
-
     // 使用markRaw避免Vue响应式代理，保护Fabric.js原生交互能力
     canvas.value = markRaw(fabricCanvas)
 
-    // 设置画布全局样式
-    fabricCanvas.set({
-      // 设置选择区域样式
-      selectionColor: 'rgba(100, 100, 255, 0.1)',
-      selectionBorderColor: 'red',
-      selectionLineWidth: 2,
-    })
-
-    // 设置全局默认值 - 隐藏连接线
-    try {
-      const fabricWindow = window as unknown as { fabric?: { Object?: { prototype?: { withConnection?: boolean } } } };
-      if (fabricWindow.fabric?.Object?.prototype) {
-        fabricWindow.fabric.Object.prototype.withConnection = false;
-        console.log('🔗 全局设置：隐藏所有对象的连接线');
-      }
-    } catch (error) {
-      console.warn('⚠️ 无法设置全局连接线隐藏:', error);
-    }
-
     // 设置画布默认对象样式
-    Canvas.prototype.getActiveObject = function() {
-      const activeObject = this._activeObject;
+    Canvas.prototype.getActiveObject = function () {
+      const activeObject = this._activeObject
       if (activeObject) {
         activeObject.set({
           transparentCorners: false, // 边框方点: false 实心  true 空心
-          borderColor: 'red', // 边框颜色
-          cornerStrokeColor: 'red',
-          cornerColor: 'red', // 边框方点的颜色
+          borderColor: '#ad46ff', // 边框颜色
+          cornerStrokeColor: '#cacaca',
+          cornerColor: '#fff', // 边框方点的颜色
           cornerStyle: 'rect',
-          cornerSize: 4, // 边框方点的大小
+          cornerSize: 6, // 边框方点的大小
           padding: 0,
           borderScaleFactor: 2,
           // 隐藏旋转控制器和边框之间的连接线
-          withConnection: false,
-        });
+        })
       }
-      return activeObject;
-    };
+      return activeObject
+    }
 
     // 自定义旋转控制器图标渲染函数
     const renderRotateIcon = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-      const size = 24; // 图标大小
-      const radius = size / 2;
-      
+      const size = 24 // 图标大小
+      const radius = size / 2
+
       // 保存当前画布状态
-      ctx.save();
-      
+      ctx.save()
+
       // 移动到图标中心位置
-      ctx.translate(left, top);
-      
+      ctx.translate(left, top)
+
       // 绘制圆形背景
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = '#4285f4'; // 蓝色背景
-      ctx.fill();
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      
+      ctx.beginPath()
+      ctx.arc(0, 0, radius, 0, 2 * Math.PI)
+      ctx.fillStyle = '#4285f4' // 蓝色背景
+      ctx.fill()
+      ctx.strokeStyle = '#000000'
+      ctx.lineWidth = 2
+      ctx.stroke()
+
       // 绘制旋转箭头图标
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2.5;
-      ctx.lineCap = 'round';
-      
+      ctx.strokeStyle = '#000000'
+      ctx.lineWidth = 2.5
+      ctx.lineCap = 'round'
+
       // 绘制弧形箭头 (3/4 圆弧)
-      ctx.beginPath();
-      ctx.arc(0, 0, radius * 0.45, -Math.PI * 0.75, Math.PI * 0.75, false);
-      ctx.stroke();
-      
+      ctx.beginPath()
+      ctx.arc(0, 0, radius * 0.45, -Math.PI * 0.75, Math.PI * 0.75, false)
+      ctx.stroke()
+
       // 绘制箭头头部
-      const arrowSize = 5;
-      const arrowAngle = Math.PI * 0.75;
-      const arrowX = Math.cos(arrowAngle) * radius * 0.45;
-      const arrowY = Math.sin(arrowAngle) * radius * 0.45;
-      
+      const arrowSize = 5
+      const arrowAngle = Math.PI * 0.75
+      const arrowX = Math.cos(arrowAngle) * radius * 0.45
+      const arrowY = Math.sin(arrowAngle) * radius * 0.45
+
       // 箭头的两条线
-      ctx.beginPath();
-      ctx.moveTo(arrowX, arrowY);
-      ctx.lineTo(arrowX - arrowSize * 0.7, arrowY - arrowSize * 0.7);
-      ctx.moveTo(arrowX, arrowY);
-      ctx.lineTo(arrowX + arrowSize * 0.7, arrowY - arrowSize * 0.7);
-      ctx.stroke();
-      
+      ctx.beginPath()
+      ctx.moveTo(arrowX, arrowY)
+      ctx.lineTo(arrowX - arrowSize * 0.7, arrowY - arrowSize * 0.7)
+      ctx.moveTo(arrowX, arrowY)
+      ctx.lineTo(arrowX + arrowSize * 0.7, arrowY - arrowSize * 0.7)
+      ctx.stroke()
+
       // 恢复画布状态
-      ctx.restore();
-    };
+      ctx.restore()
+    }
 
-    // 延迟设置自定义旋转控制器，确保 Fabric.js 完全加载
-    setTimeout(() => {
-      try {
-        // 检查 Fabric.js 是否可用 - 使用更详细的检查
-        const fabricGlobal = (window as { fabric?: unknown }).fabric;
-        console.log('🔍 Fabric.js 全局对象:', fabricGlobal);
-        
-        if (fabricGlobal) {
-          // 检查不同可能的结构
-          const fabricObj = fabricGlobal as { 
-            Object?: { 
-              prototype?: { 
-                controls?: unknown 
-              } 
-            },
-            controlsUtils?: unknown,
-            controls?: unknown
-          };
-          
-          console.log('🔍 检查结构:');
-          console.log('- fabric.Object:', !!fabricObj.Object);
-          console.log('- fabric.Object.prototype:', !!fabricObj.Object?.prototype);
-          console.log('- fabric.Object.prototype.controls:', !!fabricObj.Object?.prototype?.controls);
-          console.log('- fabric.controls:', !!fabricObj.controls);
-          console.log('- fabric.controlsUtils:', !!fabricObj.controlsUtils);
-          
-          // 尝试访问控制器
-          const controls = fabricObj.Object?.prototype?.controls as { mtr?: unknown } | undefined;
-          if (controls) {
-            console.log('🔍 找到控制器对象:', Object.keys(controls));
-            console.log('- mtr 控制器:', !!controls.mtr);
-            
-            if (controls.mtr) {
-              const mtrControl = controls.mtr as { render?: unknown };
-              console.log('- mtr.render:', !!mtrControl.render);
-              
-              if (mtrControl.render) {
-                mtrControl.render = function(ctx: CanvasRenderingContext2D, left: number, top: number) {
-                  console.log('🎨 渲染自定义旋转控制器');
-                  renderRotateIcon(ctx, left, top);
-                };
-                console.log('✅ 自定义旋转控制器已设置');
-              } else {
-                console.warn('❌ mtr 控制器没有 render 方法');
-              }
-            } else {
-              console.warn('❌ 无法找到 mtr 控制器');
-            }
-          } else {
-            console.warn('❌ 无法找到 controls 对象');
-          }
-        } else {
-          console.warn('❌ 无法找到 Fabric.js 全局对象');
-        }
-      } catch (error) {
-        console.error('❌ 设置自定义旋转控制器失败:', error);
-      }
-    }, 100);
-    
-    // 设置旋转控制器的基本样式
-    fabricCanvas.on('object:added', (e) => {
-      if (e.target) {
-        e.target.set({
-          hasRotatingPoint: true, // 显示旋转控制器
-          withConnection: false, // 隐藏连接线
-          rotatingPointOffset: 35, // 旋转控制器距离对象的距离
-        });
-        console.log('📦 对象已添加，隐藏连接线并设置旋转控制器偏移:', e.target.type);
-      }
-    });
-
-    // 添加选择事件监听，用于调试
-    fabricCanvas.on('selection:created', (e) => {
-      console.log('🎯 对象已选中:', e.selected?.[0]?.type);
-    });
-
-    // 测试控制器是否存在
-    console.log('🔍 Fabric.js 版本和控制器检查:');
-    console.log('- fabric 对象:', !!(window as { fabric?: unknown }).fabric);
-    console.log('- Object 原型:', !!((window as { fabric?: { Object?: unknown } }).fabric as { Object?: unknown })?.Object);
-    
-    // 尝试通过导入的模块直接设置控制器
     const setupControlsDirectly = () => {
       try {
-        console.log('🛠️ 尝试直接设置控制器...');
-        
-        // 方法1: 通过导入的 Canvas 类
-        const canvasPrototype = Canvas.prototype as { 
-          _setupCurrentTransform?: unknown,
-          _drawControl?: unknown 
-        };
-        console.log('- Canvas.prototype:', !!canvasPrototype);
-        
-        // 方法2: 检查已创建的画布实例
-        if (fabricCanvas) {
-          console.log('- 画布实例存在');
-          const canvasControls = (fabricCanvas as { controls?: unknown }).controls;
-          console.log('- 画布控制器:', !!canvasControls);
-        }
-        
-        // 方法3: 尝试在对象被选中时动态设置
         fabricCanvas.on('selection:created', (e) => {
-          const obj = e.selected?.[0];
+          const obj = e.selected?.[0]
           if (obj) {
-            console.log('🎯 对象选中，尝试设置控制器:', obj.type);
-            const objControls = (obj as { controls?: { mtr?: { render?: unknown } } }).controls;
+            const objControls = (obj as { controls?: { mtr?: { render?: unknown } } }).controls
             if (objControls?.mtr) {
-              console.log('- 找到对象的 mtr 控制器');
-              objControls.mtr.render = function(ctx: CanvasRenderingContext2D, left: number, top: number) {
-                console.log('🎨 渲染对象级自定义旋转控制器');
-                renderRotateIcon(ctx, left, top);
-              };
-              console.log('✅ 对象级控制器设置成功');
+              objControls.mtr.render = function (
+                ctx: CanvasRenderingContext2D,
+                left: number,
+                top: number,
+              ) {
+                renderRotateIcon(ctx, left, top)
+              }
             }
           }
-        });
-        
+        })
       } catch (error) {
-        console.error('❌ 直接设置控制器失败:', error);
+        console.error('直接设置控制器失败:', error)
       }
-    };
+    }
 
     // 立即尝试直接设置
-    setupControlsDirectly();
-    
-    // 延迟再次尝试
-    setTimeout(setupControlsDirectly, 500);
-    setTimeout(setupControlsDirectly, 1000);
+    setupControlsDirectly()
     // 设置画布事件监听
     setupCanvasEvents(fabricCanvas)
 
@@ -341,20 +216,6 @@ export function useEditor() {
   // 添加元素到画布
   const addElementToCanvas = (fabricObject: EditorObject) => {
     if (!canvas.value) return
-
-    // 为新对象设置样式，隐藏连接线
-    fabricObject.set({
-      // 保留旋转控制器但隐藏连接线
-      hasRotatingPoint: true,
-      rotatingPointOffset: 35, // 设置旋转控制器距离
-      borderColor: 'red',
-      cornerColor: 'red',
-      cornerStrokeColor: 'red',
-      borderScaleFactor: 2,
-      cornerSize: 4,
-      transparentCorners: false,
-      padding: 0,
-    })
 
     canvas.value.add(fabricObject as EditorObject)
     canvas.value.setActiveObject(fabricObject as EditorObject)
