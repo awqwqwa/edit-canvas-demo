@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { FabricImage } from 'fabric'
+import { Control, controlsUtils, FabricImage } from 'fabric'
 import type { EditorImageObject, ImageElement } from '@/type/element'
 
 export function useImageHandler() {
@@ -32,7 +32,7 @@ export function useImageHandler() {
             scaleX: options.scaleX || 1,
             scaleY: options.scaleY || 1,
             cornerStyle: 'circle',
-            cornerSize: 12,
+            cornerSize: 0,
             borderColor: '#4285f4',
             cornerColor: '#4285f4',
             borderScaleFactor: 2,
@@ -73,9 +73,70 @@ export function useImageHandler() {
     })
   }
 
+  // 自定义旋转控制器样式
+  const setupCustomMtrControl = (imageObject: EditorImageObject) => {
+    // 自定义旋转控制器的渲染函数
+    function renderCustomRotateIcon(
+      ctx: CanvasRenderingContext2D,
+      left: number,
+      top: number,
+      styleOverride: unknown,
+      fabricObject: EditorImageObject,
+    ) {
+      const size = 24
+      const radius = size / 2
+
+      ctx.save()
+      ctx.translate(left, top)
+      ctx.rotate(((fabricObject.angle || 0) * Math.PI) / 180)
+
+      // 绘制外圆背景
+      ctx.beginPath()
+      ctx.arc(0, 0, radius, 0, 2 * Math.PI)
+      ctx.fillStyle = '#4285f4'
+      ctx.fill()
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      // 绘制旋转箭头图标
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 2
+      ctx.lineCap = 'round'
+
+      // 圆弧箭头
+      ctx.beginPath()
+      ctx.arc(0, 0, 8, -Math.PI * 0.3, Math.PI * 0.9, false)
+      ctx.stroke()
+
+      // 箭头头部
+      const arrowX = 8 * Math.cos(Math.PI * 0.9)
+      const arrowY = 8 * Math.sin(Math.PI * 0.9)
+      ctx.beginPath()
+      ctx.moveTo(arrowX - 3, arrowY - 1)
+      ctx.lineTo(arrowX + 1, arrowY - 1)
+      ctx.lineTo(arrowX - 1, arrowY + 3)
+      ctx.stroke()
+
+      ctx.restore()
+    }
+
+    // 创建自定义旋转控制器
+    imageObject.controls.mtr = new Control({
+      x: 0,
+      y: -0.5,
+      offsetY: -35, // 距离对象的距离
+      cursorStyleHandler: controlsUtils.rotationStyleHandler,
+      actionHandler: controlsUtils.rotationWithSnapping,
+      actionName: 'rotate',
+      render: renderCustomRotateIcon,
+    })
+  }
+
   // 设置图片控制点
   const setupImageControls = (imageObject: EditorImageObject) => {
     // 确保所有控制点都可见
+
     imageObject.setControlsVisibility({
       tl: true, // 左上角
       tr: true, // 右上角
@@ -88,10 +149,8 @@ export function useImageHandler() {
       mtr: true, // 旋转控制点
     })
 
-    // 设置旋转控制点位置
-    if (imageObject.controls.mtr) {
-      imageObject.controls.mtr.offsetY = -40
-    }
+    // 设置自定义旋转控制器
+    setupCustomMtrControl(imageObject)
   }
 
   // 设置缩放事件

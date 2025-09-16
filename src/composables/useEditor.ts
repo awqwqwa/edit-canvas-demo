@@ -1,5 +1,5 @@
 import { ref, reactive, shallowRef, markRaw } from 'vue'
-import { Canvas } from 'fabric'
+import { Canvas, Control, controlsUtils } from 'fabric'
 import type {
   EditorCanvas,
   EditorConfig,
@@ -52,7 +52,7 @@ export function useEditor() {
           cornerStrokeColor: '#cacaca',
           cornerColor: '#fff', // 边框方点的颜色
           cornerStyle: 'rect',
-          cornerSize: 6, // 边框方点的大小
+          cornerSize: 8, // 边框方点的大小
           padding: 0,
           borderScaleFactor: 2,
           // 隐藏旋转控制器和边框之间的连接线
@@ -62,50 +62,48 @@ export function useEditor() {
     }
 
     // 自定义旋转控制器图标渲染函数
-    const renderRotateIcon = (ctx: CanvasRenderingContext2D, left: number, top: number) => {
-      const size = 24 // 图标大小
+    function renderCustomRotateIcon(
+      ctx: CanvasRenderingContext2D,
+      left: number,
+      top: number,
+      styleOverride: unknown,
+      fabricObject: EditorTextObject,
+    ) {
+      const size = 24
       const radius = size / 2
 
-      // 保存当前画布状态
       ctx.save()
-
-      // 移动到图标中心位置
       ctx.translate(left, top)
+      ctx.rotate(((fabricObject.angle || 0) * Math.PI) / 180)
 
-      // 绘制圆形背景
+      // 绘制外圆背景
       ctx.beginPath()
       ctx.arc(0, 0, radius, 0, 2 * Math.PI)
-      ctx.fillStyle = '#4285f4' // 蓝色背景
+      ctx.fillStyle = '#4285f4'
       ctx.fill()
-      ctx.strokeStyle = '#000000'
+      ctx.strokeStyle = '#ffffff'
       ctx.lineWidth = 2
       ctx.stroke()
 
       // 绘制旋转箭头图标
-      ctx.strokeStyle = '#000000'
-      ctx.lineWidth = 2.5
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 2
       ctx.lineCap = 'round'
 
-      // 绘制弧形箭头 (3/4 圆弧)
+      // 圆弧箭头
       ctx.beginPath()
-      ctx.arc(0, 0, radius * 0.45, -Math.PI * 0.75, Math.PI * 0.75, false)
+      ctx.arc(0, 0, 8, -Math.PI * 0.3, Math.PI * 0.9, false)
       ctx.stroke()
 
-      // 绘制箭头头部
-      const arrowSize = 5
-      const arrowAngle = Math.PI * 0.75
-      const arrowX = Math.cos(arrowAngle) * radius * 0.45
-      const arrowY = Math.sin(arrowAngle) * radius * 0.45
-
-      // 箭头的两条线
+      // 箭头头部
+      const arrowX = 8 * Math.cos(Math.PI * 0.9)
+      const arrowY = 8 * Math.sin(Math.PI * 0.9)
       ctx.beginPath()
-      ctx.moveTo(arrowX, arrowY)
-      ctx.lineTo(arrowX - arrowSize * 0.7, arrowY - arrowSize * 0.7)
-      ctx.moveTo(arrowX, arrowY)
-      ctx.lineTo(arrowX + arrowSize * 0.7, arrowY - arrowSize * 0.7)
+      ctx.moveTo(arrowX - 3, arrowY - 1)
+      ctx.lineTo(arrowX + 1, arrowY - 1)
+      ctx.lineTo(arrowX - 1, arrowY + 3)
       ctx.stroke()
 
-      // 恢复画布状态
       ctx.restore()
     }
 
@@ -116,13 +114,15 @@ export function useEditor() {
           if (obj) {
             const objControls = (obj as { controls?: { mtr?: { render?: unknown } } }).controls
             if (objControls?.mtr) {
-              objControls.mtr.render = function (
-                ctx: CanvasRenderingContext2D,
-                left: number,
-                top: number,
-              ) {
-                renderRotateIcon(ctx, left, top)
-              }
+              objControls.mtr = new Control({
+                x: 0,
+                y: -0.5,
+                offsetY: -35, // 距离对象的距离
+                cursorStyleHandler: controlsUtils.rotationStyleHandler,
+                actionHandler: controlsUtils.rotationWithSnapping,
+                actionName: 'rotate',
+                render: renderCustomRotateIcon,
+              })
             }
           }
         })
