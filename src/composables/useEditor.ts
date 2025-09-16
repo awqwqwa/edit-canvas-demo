@@ -69,39 +69,66 @@ export function useEditor() {
       styleOverride: unknown,
       fabricObject: EditorTextObject,
     ) {
-      const size = 24
-      const radius = size / 2
-
       ctx.save()
       ctx.translate(left, top)
       ctx.rotate(((fabricObject.angle || 0) * Math.PI) / 180)
 
-      // 绘制外圆背景
-      ctx.beginPath()
-      ctx.arc(0, 0, radius, 0, 2 * Math.PI)
-      ctx.fillStyle = '#4285f4'
-      ctx.fill()
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 2
-      ctx.stroke()
-
-      // 绘制旋转箭头图标
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 2
+      // 设置浅灰色
+      const lightGray = '#ad46ff'
+      ctx.strokeStyle = lightGray
+      ctx.fillStyle = lightGray
+      ctx.lineWidth = 1.8
       ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
 
-      // 圆弧箭头
+      // 绘制双箭头旋转图标（类似刷新图标）
+      const radius = 6
+      const arrowSize = 3
+
+      // 绘制上半部分弧形箭头（顺时针）
       ctx.beginPath()
-      ctx.arc(0, 0, 8, -Math.PI * 0.3, Math.PI * 0.9, false)
+      ctx.arc(0, 0, radius, Math.PI * 0.2, Math.PI * 0.8, false)
       ctx.stroke()
 
-      // 箭头头部
-      const arrowX = 8 * Math.cos(Math.PI * 0.9)
-      const arrowY = 8 * Math.sin(Math.PI * 0.9)
+      // 上箭头头部（顺时针方向，箭头指向左）
+      const topArrowX = Math.cos(Math.PI * 0.8) * radius
+      const topArrowY = Math.sin(Math.PI * 0.8) * radius
+      const topTangent = Math.PI * 0.8 + Math.PI / 2
+
       ctx.beginPath()
-      ctx.moveTo(arrowX - 3, arrowY - 1)
-      ctx.lineTo(arrowX + 1, arrowY - 1)
-      ctx.lineTo(arrowX - 1, arrowY + 3)
+      ctx.moveTo(topArrowX, topArrowY)
+      ctx.lineTo(
+        topArrowX - Math.cos(topTangent - 0.4) * arrowSize,
+        topArrowY - Math.sin(topTangent - 0.4) * arrowSize,
+      )
+      ctx.moveTo(topArrowX, topArrowY)
+      ctx.lineTo(
+        topArrowX - Math.cos(topTangent + 0.4) * arrowSize,
+        topArrowY - Math.sin(topTangent + 0.4) * arrowSize,
+      )
+      ctx.stroke()
+
+      // 绘制下半部分弧形箭头（顺时针）
+      ctx.beginPath()
+      ctx.arc(0, 0, radius, Math.PI * 1.2, Math.PI * 1.8, false)
+      ctx.stroke()
+
+      // 下箭头头部（顺时针方向，箭头指向右）
+      const bottomArrowX = Math.cos(Math.PI * 1.8) * radius
+      const bottomArrowY = Math.sin(Math.PI * 1.8) * radius
+      const bottomTangent = Math.PI * 1.8 + Math.PI / 2
+
+      ctx.beginPath()
+      ctx.moveTo(bottomArrowX, bottomArrowY)
+      ctx.lineTo(
+        bottomArrowX - Math.cos(bottomTangent - 0.4) * arrowSize,
+        bottomArrowY - Math.sin(bottomTangent - 0.4) * arrowSize,
+      )
+      ctx.moveTo(bottomArrowX, bottomArrowY)
+      ctx.lineTo(
+        bottomArrowX - Math.cos(bottomTangent + 0.4) * arrowSize,
+        bottomArrowY - Math.sin(bottomTangent + 0.4) * arrowSize,
+      )
       ctx.stroke()
 
       ctx.restore()
@@ -117,12 +144,38 @@ export function useEditor() {
               objControls.mtr = new Control({
                 x: 0,
                 y: -0.5,
-                offsetY: -35, // 距离对象的距离
+                offsetY: -20, // 距离对象的距离
                 cursorStyleHandler: controlsUtils.rotationStyleHandler,
                 actionHandler: controlsUtils.rotationWithSnapping,
                 actionName: 'rotate',
                 render: renderCustomRotateIcon,
               })
+
+              // 立即更新坐标和重新渲染
+              ;(obj as EditorObject).setCoords()
+              fabricCanvas.renderAll()
+            }
+          }
+        })
+
+        fabricCanvas.on('selection:updated', (e) => {
+          const obj = e.selected?.[0]
+          if (obj) {
+            const objControls = (obj as { controls?: { mtr?: { render?: unknown } } }).controls
+            if (objControls?.mtr) {
+              objControls.mtr = new Control({
+                x: 0,
+                y: -0.5,
+                offsetY: -20, // 距离对象的距离
+                cursorStyleHandler: controlsUtils.rotationStyleHandler,
+                actionHandler: controlsUtils.rotationWithSnapping,
+                actionName: 'rotate',
+                render: renderCustomRotateIcon,
+              })
+
+              // 立即更新坐标和重新渲染
+              ;(obj as EditorObject).setCoords()
+              fabricCanvas.renderAll()
             }
           }
         })

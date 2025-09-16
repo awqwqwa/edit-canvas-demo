@@ -1,5 +1,5 @@
 import { ref, nextTick } from 'vue'
-import { Control, controlsUtils, Textbox } from 'fabric'
+import { Textbox } from 'fabric'
 import type { EditorTextObject, TextElement } from '@/type/element'
 
 export function useTextHandler() {
@@ -57,93 +57,12 @@ export function useTextHandler() {
     ;(textObject as unknown as EditorTextObject).id = options.id || `text_${Date.now()}`
     ;(textObject as unknown as EditorTextObject).elementType = 'text'
     ;(textObject as unknown as EditorTextObject).isEditable = true
-
-    setupTextControls(textObject as unknown as EditorTextObject)
     // 设置文本编辑事件
     setupTextEvents(textObject as unknown as EditorTextObject)
 
     return textObject as unknown as EditorTextObject
   }
 
-  // 自定义旋转控制器样式
-  const setupCustomMtrControl = (textObject: EditorTextObject) => {
-    // 自定义旋转控制器的渲染函数
-    function renderCustomRotateIcon(
-      ctx: CanvasRenderingContext2D,
-      left: number,
-      top: number,
-      styleOverride: unknown,
-      fabricObject: EditorTextObject,
-    ) {
-      const size = 24
-      const radius = size / 2
-
-      ctx.save()
-      ctx.translate(left, top)
-      ctx.rotate(((fabricObject.angle || 0) * Math.PI) / 180)
-
-      // 绘制外圆背景
-      ctx.beginPath()
-      ctx.arc(0, 0, radius, 0, 2 * Math.PI)
-      ctx.fillStyle = '#4285f4'
-      ctx.fill()
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 2
-      ctx.stroke()
-
-      // 绘制旋转箭头图标
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 2
-      ctx.lineCap = 'round'
-
-      // 圆弧箭头
-      ctx.beginPath()
-      ctx.arc(0, 0, 8, -Math.PI * 0.3, Math.PI * 0.9, false)
-      ctx.stroke()
-
-      // 箭头头部
-      const arrowX = 8 * Math.cos(Math.PI * 0.9)
-      const arrowY = 8 * Math.sin(Math.PI * 0.9)
-      ctx.beginPath()
-      ctx.moveTo(arrowX - 3, arrowY - 1)
-      ctx.lineTo(arrowX + 1, arrowY - 1)
-      ctx.lineTo(arrowX - 1, arrowY + 3)
-      ctx.stroke()
-
-      ctx.restore()
-    }
-
-    // 创建自定义旋转控制器
-    textObject.controls.mtr = new Control({
-      x: 0,
-      y: -0.5,
-      offsetY: -35, // 距离对象的距离
-      cursorStyleHandler: controlsUtils.rotationStyleHandler,
-      actionHandler: controlsUtils.rotationWithSnapping,
-      actionName: 'rotate',
-      render: renderCustomRotateIcon,
-    })
-  }
-
-  // 设置图片控制点
-  const setupTextControls = (textObject: EditorTextObject) => {
-    // 确保所有控制点都可见
-
-    textObject.setControlsVisibility({
-      tl: true, // 左上角
-      tr: true, // 右上角
-      br: true, // 右下角
-      bl: true, // 左下角
-      ml: true, // 左边中点
-      mr: true, // 右边中点
-      mt: true, // 上边中点
-      mb: true, // 下边中点
-      mtr: true, // 旋转控制点
-    })
-
-    // 设置自定义旋转控制器
-    setupCustomMtrControl(textObject)
-  }
   // 设置文本事件处理
   const setupTextEvents = (textObject: EditorTextObject) => {
     // 双击进入编辑模式
